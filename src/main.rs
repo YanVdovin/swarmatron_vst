@@ -1,6 +1,6 @@
 use nih_plug::prelude::*;
-use swarmatron_vst::Swarmer;
+use swarmer::MyPlugin;
 
 fn main() {
-    nih_export_standalone::<Swarmer>();
+    nih_export_standalone::<MyPlugin>();
 }

@@ -5,7 +5,7 @@ This is just a starting template for plugins using the nih-plug plugin framework
 ## Build
 
 ```sh
-cargo xtask bundle swarmatron_vst --release
+cargo xtask bundle swarmer --release
 ```
 
 ## Copy to Plugin Folder
@@ -14,10 +14,22 @@ cargo xtask bundle swarmatron_vst --release
 
 Clap:
 ```sh
-cp -r target/bundled/swarmatron_vst.clap ~/.clap/
+cp -r target/bundled/swarmer.clap ~/.clap/
 ```
 
 VST:
 ```sh
-cp -r target/bundled/swarmatron_vst.vst3 ~/.vst3/
+cp -r target/bundled/swarmer.vst3 ~/.vst3/
+```
+
+### Windows
+
+<!-- Clap:
+```sh
+cp -r target/bundled/swarmer.clap ~/.clap/
+``` -->
+
+VST:
+```sh
+cp -r target/bundled/swarmer.vst3 ~/ProgramFiles/CommonFiles/VST3
 ```
