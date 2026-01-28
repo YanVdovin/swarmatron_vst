@@ -64,6 +64,33 @@ pub(crate) fn create(
                             ui.add_space(10.0);
 
                             ui.horizontal(|ui| {
+                                ui.label("freq Slider");
+
+                                ui.add(
+                                    Slider::from_get_set(
+                                        1.0..=20_000.0,
+                                        |new_value| match new_value {
+                                            Some(new_value) => {
+                                                setter.begin_set_parameter(&params.frequency);
+                                                setter.set_parameter(
+                                                    &params.frequency,
+                                                    new_value as f32,
+                                                );
+                                                setter.end_set_parameter(&params.frequency);
+
+                                                new_value
+                                            }
+                                            None => params.frequency.value() as f64,
+                                        },
+                                    )
+                                    .show_value(true)
+                                    .suffix(" Hz"),
+                                );
+                            });
+
+                            ui.add_space(10.0);
+
+                            ui.horizontal(|ui| {
                                 ui.label("Peak Meter");
                                 let peak_meter = util::gain_to_db(
                                     peak_meter.load(std::sync::atomic::Ordering::Relaxed),
@@ -81,33 +108,6 @@ pub(crate) fn create(
                                     setter.set_parameter(&params.mute, mute);
                                     setter.end_set_parameter(&params.mute);
                                 }
-                            });
-
-                            ui.add_space(10.0);
-
-                            ui.horizontal(|ui| {
-                                ui.label("freq Slider");
-
-                                ui.add(
-                                    Slider::from_get_set(
-                                        1.0..=20_000.0,
-                                        |new_value| match new_value {
-                                            Some(new_value) => {
-                                                setter.begin_set_parameter(&params.frequency);
-                                                setter.set_parameter(
-                                                    &params.frequency,
-                                                    new_value as f32,
-                                                );
-                                                setter.end_set_parameter(&params.frequency);
-
-                                                new_value
-                                            }
-                                            None => params.gain.value() as f64,
-                                        },
-                                    )
-                                    .show_value(true)
-                                    .suffix(" Hz"),
-                                );
                             });
 
                             ui.add_space(20.0); // Bottom padding

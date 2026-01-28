@@ -270,7 +270,8 @@ impl ClapPlugin for MyPlugin {
     const CLAP_MANUAL_URL: Option<&'static str> = Some(Self::URL);
     const CLAP_SUPPORT_URL: Option<&'static str> = None;
     const CLAP_FEATURES: &'static [ClapFeature] = &[
-        ClapFeature::AudioEffect,
+        ClapFeature::Instrument,
+        ClapFeature::Synthesizer,
         ClapFeature::Stereo,
         ClapFeature::Mono,
         ClapFeature::Utility,
@@ -280,7 +281,7 @@ impl ClapPlugin for MyPlugin {
 impl Vst3Plugin for MyPlugin {
     const VST3_CLASS_ID: [u8; 16] = *b"MStecktechPlugin";
     const VST3_SUBCATEGORIES: &'static [Vst3SubCategory] =
-        &[Vst3SubCategory::Fx, Vst3SubCategory::Tools];
+        &[Vst3SubCategory::Instrument, Vst3SubCategory::Synth, Vst3SubCategory::Tools];
 }
 
 nih_export_clap!(MyPlugin);
