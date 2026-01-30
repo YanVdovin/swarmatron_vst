@@ -4,12 +4,12 @@ use level_meter::PeakMeter;
 use nih_plug::{editor::Editor, prelude::AtomicF32, util};
 use nih_plug_egui::{
     create_egui_editor,
-    egui::{Slider, Vec2},
+    egui::{self, Button, RadioButton, Slider, Vec2},
     resizable_window::ResizableWindow,
 };
 use toggle::toggle_ui;
 
-use crate::PluginParams;
+use crate::{PluginParams, voice::Waveform};
 
 mod level_meter;
 mod toggle;
@@ -38,6 +38,7 @@ pub(crate) fn create(
 
                             ui.add_space(10.0);
 
+                            // Gain
                             ui.horizontal(|ui| {
                                 ui.label("Gain Slider");
 
@@ -61,8 +62,29 @@ pub(crate) fn create(
                                 );
                             });
 
+                            ui.horizontal(|ui| {
+                                ui.label("Waveform");
+
+                                if ui.add(
+                                    RadioButton::new(params.waveform.value() == Waveform::Saw, "Saw")
+                                ).clicked() {
+                                    setter.begin_set_parameter(&params.waveform);
+                                    setter.set_parameter(&params.waveform, Waveform::Saw);
+                                    setter.end_set_parameter(&params.waveform);
+                                };
+
+                                if ui.add(
+                                    RadioButton::new(params.waveform.value() == Waveform::Sine, "Sine")
+                                ).clicked() {
+                                    setter.begin_set_parameter(&params.waveform);
+                                    setter.set_parameter(&params.waveform, Waveform::Sine);
+                                    setter.end_set_parameter(&params.waveform);
+                                };
+                            });
+
                             ui.add_space(10.0);
 
+                            // Freq slider
                             ui.horizontal(|ui| {
                                 ui.label("freq Slider");
 
@@ -90,6 +112,7 @@ pub(crate) fn create(
 
                             ui.add_space(10.0);
 
+                            // Peak meter
                             ui.horizontal(|ui| {
                                 ui.label("Peak Meter");
                                 let peak_meter = util::gain_to_db(
@@ -100,6 +123,7 @@ pub(crate) fn create(
 
                             ui.add_space(10.0);
 
+                            // Mute
                             ui.horizontal(|ui| {
                                 ui.label("Mute");
                                 let mut mute = params.mute.value();

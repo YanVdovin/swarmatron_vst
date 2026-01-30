@@ -1,11 +1,15 @@
 use nih_plug::{prelude::*, util::db_to_gain_fast};
 use nih_plug_egui::EguiState;
-use std::f32::consts;
+// use std::f32::consts;
 use std::sync::{Arc, atomic::Ordering};
+
+use crate::voice::{Voice, Waveform};
+mod voice;
 mod editor;
 
 pub struct MyPlugin {
     params: Arc<PluginParams>,
+    voice: Voice,
     peak_meter_decay_factor: f32,
     peak_meter: Arc<AtomicF32>,
 
@@ -34,6 +38,9 @@ struct PluginParams {
     #[id = "gain"]
     pub gain: FloatParam,
 
+    #[id = "waveform"]
+    pub waveform: EnumParam<voice::Waveform>,
+
     #[id = "mute"]
     pub mute: BoolParam,
 
@@ -48,6 +55,7 @@ impl Default for MyPlugin {
     fn default() -> Self {
         Self {
             params: Arc::new(PluginParams::default()),
+            voice: Voice::new(),
             peak_meter_decay_factor: 0.9996,
             peak_meter: Arc::new(AtomicF32::new(util::MINUS_INFINITY_DB)),
 
@@ -93,25 +101,29 @@ impl Default for PluginParams {
             .with_value_to_string(formatters::v2s_f32_hz_then_khz(0))
             .with_string_to_value(formatters::s2v_f32_hz_then_khz()),
 
+            waveform: EnumParam::new("Waveform", Waveform::Saw),
             mute: BoolParam::new("Mute", false),
             use_midi: BoolParam::new("Use MIDI", false),
         }
     }
 }
 
-impl MyPlugin {
-    fn calculate_sine(&mut self, frequency: f32) -> f32 {
-        let phase_delta = frequency / self.sample_rate;
-        let sine = (self.phase * consts::TAU).sin();
+// impl MyPlugin {
+//     fn calculate_sine(&mut self, frequency: f32) -> f32 {
+//         let phase_delta = frequency / self.sample_rate;
+//         self.phase = (self.phase + phase_delta).fract();  // .fract() = fractional part = mod 1.0
+//         // let sine = (self.phase * consts::TAU).sin();
+//         let saw = self.phase - f32::floor(self.phase);
 
-        self.phase += phase_delta;
-        if self.phase >= 1.0 {
-            self.phase -= 1.0;
-        }
+//         self.phase += phase_delta;
+//         if self.phase >= 1.0 {
+//             self.phase -= 1.0;
+//         }
 
-        sine
-    }
-}
+//         // sine
+//         saw
+//     }
+// }
 
 impl Plugin for MyPlugin {
     const NAME: &'static str = "My Plugin";
@@ -149,6 +161,12 @@ impl Plugin for MyPlugin {
         _buffer_config: &BufferConfig,
         _context: &mut impl InitContext<Self>,
     ) -> bool {
+        self.sample_rate = _buffer_config.sample_rate as f32;
+        self.peak_meter_decay_factor = 0.9996; // or calculate based on sr if you want true ms decay
+
+        // Optional but nice: reset phase & envelope so you don't get stuck phase on reload
+        self.phase = 0.0;
+        self.midi_note_gain.reset(0.0);
         true
     }
 
@@ -170,6 +188,10 @@ impl Plugin for MyPlugin {
             if self.params.mute.value() {
                 gain_lin = 0.0; // Apply mute if needed
             };
+
+            // if self.params.waveform.value() != self.wave_gen.waveform {
+            //     self.wave_gen.set_waveform(self.params.waveform.value());
+            // };
 
             // --- Peak Meter Update Logic ---
             if self.params.editor_state.is_open() {
@@ -226,10 +248,10 @@ impl Plugin for MyPlugin {
                 }
 
                 // This gain envelope prevents clicks with new notes and with released notes
-                self.calculate_sine(self.midi_note_freq) * self.midi_note_gain.next()
+                self.voice.generate_wave(self.midi_note_freq, self.params.waveform.value()) * self.midi_note_gain.next()
             } else {
                 let frequency = self.params.frequency.smoothed.next();
-                self.calculate_sine(frequency)
+                self.voice.generate_wave(frequency, self.params.waveform.value())
             };
 
             // --- Apply Gain and Find Peak ---
