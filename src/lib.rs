@@ -5,6 +5,7 @@ use std::sync::{Arc, atomic::Ordering};
 
 use crate::voice::{Voice, Waveform};
 mod voice;
+mod voice_bank;
 mod editor;
 
 pub struct MyPlugin {
@@ -88,17 +89,15 @@ impl Default for PluginParams {
 
             frequency: FloatParam::new(
                 "Frequency",
-                420.0,
+                440.0,                             // A4 – standard tuning reference
                 FloatRange::Skewed {
-                    min: 1.0,
-                    max: 20_000.0,
-                    factor: FloatRange::skew_factor(-2.0),
+                        min: 27.5,                     // A0 – lowest practical piano note
+                        max: 8372.0,                   // or 16000–20000, but tighter is often nicer
+                        factor: FloatRange::skew_factor(0.4),  // positive = more space in lows/mids
                 },
             )
-            .with_smoother(SmoothingStyle::Linear(10.0))
-            // We purposely don't specify a step size here, but the parameter should still be
-            // displayed as if it were rounded. This formatter also includes the unit.
-            .with_value_to_string(formatters::v2s_f32_hz_then_khz(0))
+            .with_smoother(SmoothingStyle::Linear(200.0))  // smooth changes
+            .with_value_to_string(formatters::v2s_f32_hz_then_khz(1))
             .with_string_to_value(formatters::s2v_f32_hz_then_khz()),
 
             waveform: EnumParam::new("Waveform", Waveform::Saw),

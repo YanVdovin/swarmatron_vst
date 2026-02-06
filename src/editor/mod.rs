@@ -90,7 +90,7 @@ pub(crate) fn create(
 
                                 ui.add(
                                     Slider::from_get_set(
-                                        1.0..=20_000.0,
+                                        27.5..=8372.0,
                                         |new_value| match new_value {
                                             Some(new_value) => {
                                                 setter.begin_set_parameter(&params.frequency);
