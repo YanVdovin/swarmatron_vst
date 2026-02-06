@@ -1,6 +1,6 @@
 use nih_plug::prelude::*;
-use swarmer::MyPlugin;
+use swarmer::PolyModSynth;
 
 fn main() {
-    nih_export_standalone::<MyPlugin>();
+    nih_export_standalone::<PolyModSynth>();
 }
